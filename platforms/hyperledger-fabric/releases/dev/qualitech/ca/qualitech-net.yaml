@@ -1,0 +1,44 @@
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: qualitech-net-ca
+  namespace: qualitech-net
+  annotations:
+    fluxcd.io/automated: "false"
+spec:
+  releaseName: qualitech-net-ca
+  chart:
+    git: ssh://git@github.com/skatrych/blockchain-automation-framework.git
+    ref: dev
+    path: platforms/hyperledger-fabric/charts/ca    
+  values:
+    metadata:
+      namespace: qualitech-net
+      images:
+        alpineutils: docker.io/hyperledgerlabs/alpine-utils:1.0
+        ca: hyperledger/fabric-ca:1.4.8
+    server:
+      name: ca
+      tlsstatus: true
+      admin: qualitech-admin
+    storage:
+      storageclassname: qualitechsc
+      storagesize: 512Mi
+    vault:
+      role: vault-role
+      address: http://13.48.195.11:8200
+      authpath: qualitech-net-auth
+      secretcert: secret/crypto/peerOrganizations/qualitech-net/ca?ca.qualitech-net-cert.pem
+      secretkey: secret/crypto/peerOrganizations/qualitech-net/ca?qualitech-net-CA.key
+      secretadminpass: secret/credentials/qualitech-net/ca/qualitech?user
+      serviceaccountname: vault-auth
+      imagesecretname: regcred
+    service:
+      servicetype: ClusterIP
+      ports:
+        tcp:
+          port: 7054
+    proxy:
+      provider: none
+      type: peer
+      external_url_suffix: qualitech-net
