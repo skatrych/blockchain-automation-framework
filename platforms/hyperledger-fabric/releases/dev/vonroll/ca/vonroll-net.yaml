@@ -1,0 +1,44 @@
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: vonroll-net-ca
+  namespace: vonroll-net
+  annotations:
+    fluxcd.io/automated: "false"
+spec:
+  releaseName: vonroll-net-ca
+  chart:
+    git: ssh://git@github.com/skatrych/blockchain-automation-framework.git
+    ref: dev
+    path: platforms/hyperledger-fabric/charts/ca    
+  values:
+    metadata:
+      namespace: vonroll-net
+      images:
+        alpineutils: docker.io/hyperledgerlabs/alpine-utils:1.0
+        ca: hyperledger/fabric-ca:1.4.8
+    server:
+      name: ca
+      tlsstatus: true
+      admin: vonroll-admin
+    storage:
+      storageclassname: vonrollsc
+      storagesize: 512Mi
+    vault:
+      role: vault-role
+      address: http://13.48.195.11:8200
+      authpath: vonroll-net-auth
+      secretcert: secret/crypto/peerOrganizations/vonroll-net/ca?ca.vonroll-net-cert.pem
+      secretkey: secret/crypto/peerOrganizations/vonroll-net/ca?vonroll-net-CA.key
+      secretadminpass: secret/credentials/vonroll-net/ca/vonroll?user
+      serviceaccountname: vault-auth
+      imagesecretname: regcred
+    service:
+      servicetype: ClusterIP
+      ports:
+        tcp:
+          port: 7054
+    proxy:
+      provider: none
+      type: peer
+      external_url_suffix: vonroll-net
